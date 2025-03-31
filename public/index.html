@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>LAN File Album</title>
+    <title>My Cloud</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Uppy -->
     <link href="https://releases.transloadit.com/uppy/v3.3.1/uppy.min.css" rel="stylesheet">
     <script src="https://releases.transloadit.com/uppy/v3.3.1/uppy.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 
     <style>
         body {
@@ -30,66 +32,179 @@
         .btn-sm {
             font-size: 0.75rem;
         }
-
-        /* iCloud Toast */
-        #icloud-toast {
+        .custom-modal-width {
+            width: 50vw;
+            height: 50vh;
+            margin: auto;
+        }
+        #modalImage {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+        }
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+        .carousel-control-prev,
+        .carousel-control-next {
+            filter: brightness(1.5);
+        }
+        .carousel-item {
+            transition: transform 0.5s ease-in-out;
+        }
+        @media (max-width: 768px) {
+            .custom-modal-width {
+                width: 90vw;
+                height: 90vh;
+            }
+        }
+        .uppy-Dashboard-Item-preview {
             display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #007bff;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 14px;
+        }
+        .toast-container {
             z-index: 9999;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            transition: opacity 0.3s ease;
+        }
+        .toast-header {
+            background-color: #ffc107 !important;
+            color: #000 !important;
+        }
+        /* iOS-style tabs */
+        .ios-tabs {
+            background-color: #f8f9fa;
+            border: none;
+            border-radius: 10px;
+            padding: 5px;
+            margin: 15px auto;
+            width: fit-content;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .ios-tabs .nav-item {
+            margin: 0 5px;
+        }
+        .ios-tabs .nav-link {
+            border: none;
+            border-radius: 8px;
+            color: #666;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .ios-tabs .nav-link:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        .ios-tabs .nav-link.active {
+            background-color: white;
+            color: #007AFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        /* Add Bootstrap Icons */
+        @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css");
+        /* Add some spacing for icons */
+        .ios-tabs .nav-link i {
+            margin-right: 8px;
+        }
+        /* Tab content styling */
+        .tab-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
     </style>
 </head>
 <body class="p-3">
 
-<h2 class="mb-4 text-center">📂 LAN File Album</h2>
+<h2 class="mb-4 text-center">📂 My Cloud</h2>
 
-<!-- Uppy Upload Area -->
-<div id="drag-drop-area" class="mb-5"></div>
+<!-- Tabs -->
+<ul class="nav nav-tabs ios-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="view-tab" data-bs-toggle="tab" data-bs-target="#view" type="button" role="tab" aria-controls="view" aria-selected="true">
+      <i class="bi bi-images"></i> View Files
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="false">
+      <i class="bi bi-upload"></i> Upload Files
+    </button>
+  </li>
+</ul>
 
-<!-- Gallery -->
-<h4>📸 Uploaded Files</h4>
-<div id="gallery" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-3 mt-2"></div>
+<!-- Tab Content -->
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="view" role="tabpanel" aria-labelledby="view-tab">
+    <!-- Gallery -->
+    <h4>📸 My Files</h4>
+    <div id="gallery" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-3 mt-2"></div>
+  </div>
+  <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+    <!-- Uppy Upload Area -->
+    <div id="drag-drop-area" class="mb-5"></div>
+  </div>
+</div>
 
-<!-- iCloud toast message -->
-<div id="icloud-toast">
-    📥 Waiting for iCloud photo to download...
+<!-- Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog custom-modal-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalLabel">Image Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="carouselExample" class="carousel slide">
+          <div class="carousel-inner" id="carouselImages">
+            <!-- Images will be inserted here -->
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div id="uploadToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-warning text-white">
+      <strong class="me-auto">Upload Notice</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toastMessage">
+    </div>
+  </div>
 </div>
 
 <script>
-    // Show/hide toast helpers
-    function showIcloudToast() {
-        const toast = document.getElementById('icloud-toast');
-        toast.style.display = 'block';
-        toast.style.opacity = '1';
-    }
-
-    function hideIcloudToast() {
-        const toast = document.getElementById('icloud-toast');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 300);
-    }
-
     // Uppy setup
-    const uppy = new Uppy.Uppy({ restrictions: { maxNumberOfFiles: 50 } })
+    const uppy = new Uppy.Uppy({ restrictions: { maxNumberOfFiles: 1000 } })
         .use(Uppy.Dashboard, {
             inline: true,
             target: '#drag-drop-area',
             showProgressDetails: true,
             proudlyDisplayPoweredByUppy: false,
             note: 'Images, Videos, Audios, Documents supported',
-            height: 300
+            height: 300,
+            hideUploadButton: false,
+            hideProgressAfterFinish: true,
+            showLinkToFileUploadResult: false,
+            showRemoveButtonAfterComplete: true,
+            thumbnailWidth: false,
+            showSelectedFiles: true,
+            showSelectedFilesPanel: true
         })
         .use(Uppy.XHRUpload, {
             endpoint: '/upload',
@@ -97,47 +212,54 @@
             bundle: false
         });
 
-    let uploadWaitTimeout = null;
-    let isUploadStarted = false;
+    uppy.on('file-added', async (file) => {
+        console.log(`Added file: ${file.name} (${file.size} bytes)`);
 
-    uppy.on('file-added', (file) => {
-        isUploadStarted = false;
+        // Check for duplicate files
+        const response = await fetch('/uploads');
+        const existingFiles = await response.json();
 
-        uploadWaitTimeout = setTimeout(() => {
-            setTimeout(() => {
-                if (!isUploadStarted) {
-                    showIcloudToast();
-                }
-            }, 1000); // Delay for modal to close
-        }, 300); // Initial buffer
-    });
-
-    uppy.on('upload', () => {
-        isUploadStarted = true;
-        clearTimeout(uploadWaitTimeout);
-        hideIcloudToast();
-    });
-
-    uppy.on('upload-success', () => {
-        clearTimeout(uploadWaitTimeout);
-        hideIcloudToast();
-    });
-
-    uppy.on('upload-error', (file, error, response) => {
-        clearTimeout(uploadWaitTimeout);
-        hideIcloudToast();
-
-        const isIcloudEmpty = response?.body?.message?.includes('File is empty');
-        if (isIcloudEmpty) {
-            alert(`⚠️ "${file.name}" could not be uploaded.\nIt appears to still be in iCloud.\n\nPlease open it in the Photos app and wait until it fully downloads, then try again.`);
-        } else {
-            alert(`❌ Upload failed for "${file.name}": ${response?.body?.message || error}`);
+        if (existingFiles.includes(file.name)) {
+            // Show toast message
+            const toastEl = document.getElementById('uploadToast');
+            const toast = new bootstrap.Toast(toastEl);
+            document.getElementById('toastMessage').textContent = `❌ File "${file.name}" already exists.`;
+            toast.show();
+            
+            // Remove the duplicate file
+            uppy.removeFile(file.id);
         }
     });
 
-    uppy.on('complete', () => {
-        alert('✅ Upload complete!');
-        loadGallery();
+    uppy.on('upload-success', (file, response) => {
+        console.log(`File ${file.name} uploaded successfully`);
+    });
+
+    uppy.on('upload-error', (file, error, response) => {
+        console.error(`Error uploading ${file.name}:`, error);
+        alert(`❌ Upload failed for "${file.name}": ${error}`);
+    });
+
+    uppy.on('complete', (result) => {
+        if (result.successful.length > 0) {
+            // Show toast message for successful upload
+            const toastEl = document.getElementById('uploadToast');
+            const toast = new bootstrap.Toast(toastEl);
+            document.getElementById('toastMessage').textContent = '✅ Upload complete!';
+            toast.show();
+
+            loadGallery();
+            
+            // Clear all files from Uppy Dashboard
+            uppy.cancelAll();
+            // Remove all files from Uppy's internal state
+            const files = uppy.getFiles();
+            files.forEach(file => uppy.removeFile(file.id));
+            
+            // Switch to the View tab
+            const viewTab = new bootstrap.Tab(document.querySelector('#view-tab'));
+            viewTab.show();
+        }
     });
 
     function loadGallery() {
@@ -145,8 +267,10 @@
             .then(res => res.json())
             .then(files => {
                 const gallery = document.getElementById('gallery');
+                const carouselImages = document.getElementById('carouselImages');
                 gallery.innerHTML = '';
-                files.reverse().forEach(file => {
+                carouselImages.innerHTML = '';
+                files.reverse().forEach((file, index) => {
                     const ext = file.split('.').pop().toLowerCase();
                     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
                     const isVideo = ['mp4', 'webm', 'mov'].includes(ext);
@@ -154,10 +278,22 @@
                     const thumb = isImage ? `/thumbnails/${file}` : '';
                     const url = `/uploads/${file}`;
 
+                    if (isImage) {
+                        const activeClass = index === 0 ? 'active' : '';
+                        carouselImages.insertAdjacentHTML('beforeend', `
+                            <div class="carousel-item ${activeClass}">
+                                <img src="${url}" class="d-block w-100" alt="...">
+                            </div>
+                        `);
+                    }
+
                     let media = isImage
-                        ? `<img src="${thumb}" class="card-img-top" loading="lazy">`
+                        ? `<img src="${thumb}" class="card-img-top" loading="lazy" onclick="showImageModal('${url}')">`
                         : isVideo
-                            ? `<video controls width="100%" preload="metadata"><source src="${url}"></video>`
+                            ? `<video class="d-block w-100" preload="metadata" onclick="showImageModal('${url}')">
+                                <source src="${url}" type="video/${ext}">
+                                Your browser does not support the video tag.
+                            </video>`
                             : isAudio
                                 ? `<audio controls class="w-100 mt-2"><source src="${url}"></audio>`
                                 : `<div class="card-body small text-muted">${file}</div>`;
@@ -191,6 +327,77 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ oldName, newName })
             }).then(() => loadGallery());
+        }
+    }
+
+    function showImageModal(selectedUrl) {
+        const ext = selectedUrl.split('.').pop().toLowerCase();
+        const isVideo = ['mp4', 'webm', 'mov'].includes(ext);
+
+        if (isVideo) {
+            // Create a video element and request full screen
+            const videoElement = document.createElement('video');
+            videoElement.src = selectedUrl;
+            videoElement.controls = true;
+            videoElement.style.width = '100%';
+            videoElement.style.height = '100%';
+            document.body.appendChild(videoElement);
+
+            videoElement.requestFullscreen().then(() => {
+                videoElement.play();
+            }).catch(err => {
+                console.error('Error attempting to enable full-screen mode:', err);
+            });
+
+            // Remove the video element when exiting full screen
+            videoElement.onfullscreenchange = () => {
+                if (!document.fullscreenElement) {
+                    videoElement.remove();
+                }
+            };
+        } else {
+            // Handle images in the modal with carousel
+            const carouselImages = document.getElementById('carouselImages');
+            carouselImages.innerHTML = ''; // Clear existing images
+
+            fetch('/uploads')
+                .then(res => res.json())
+                .then(files => {
+                    files.reverse().forEach((file) => {
+                        const fileExt = file.split('.').pop().toLowerCase();
+                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                        const url = `/uploads/${file}`;
+
+                        const activeClass = url === selectedUrl ? 'active' : '';
+
+                        if (isImage) {
+                            carouselImages.insertAdjacentHTML('beforeend', `
+                                <div class="carousel-item ${activeClass}">
+                                    <img src="${url}" class="d-block w-100" alt="...">
+                                </div>
+                            `);
+                        }
+                    });
+
+                    // Add keydown event listener for navigation
+                    document.addEventListener('keydown', handleKeydown);
+                });
+
+            const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+            imageModal.show();
+
+            // Remove event listener when modal is closed
+            document.getElementById('imageModal').addEventListener('hidden.bs.modal', () => {
+                document.removeEventListener('keydown', handleKeydown);
+            });
+        }
+    }
+
+    function handleKeydown(event) {
+        if (event.key === 'ArrowLeft') {
+            document.querySelector('.carousel-control-prev').click();
+        } else if (event.key === 'ArrowRight') {
+            document.querySelector('.carousel-control-next').click();
         }
     }
 
