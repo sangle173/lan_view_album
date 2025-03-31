@@ -42,7 +42,10 @@
 <!-- Gallery -->
 <h4>📸 Uploaded Files</h4>
 <div id="gallery" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-3 mt-2"></div>
-
+<div id="upload-status" class="text-center mt-4" style="display: none;">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2">Waiting for iCloud image to download...</p>
+</div>
 <script>
     // Initialize Uppy
     const uppy = new Uppy.Uppy({ restrictions: { maxNumberOfFiles: 1000 } })
@@ -59,6 +62,38 @@
             fieldName: 'file',
             bundle: false
         });
+
+    // iCloud image handling: empty file size
+    uppy.on('file-added', (file) => {
+        if (file.size === 0) {
+            alert(`⚠️ The file "${file.name}" appears to be empty. This can happen if the photo is still in iCloud.\n\nPlease wait for it to fully download in the Photos app before uploading.`);
+        }
+    });
+
+    // iCloud: Show spinner if upload takes long to start
+    let icloudTimeout = null;
+    uppy.on('upload', () => {
+        icloudTimeout = setTimeout(() => {
+            document.getElementById('upload-status').style.display = 'block';
+        }, 2000); // Show after 2s if upload is delayed (iCloud download time)
+    });
+
+    uppy.on('upload-success', () => {
+        clearTimeout(icloudTimeout);
+        document.getElementById('upload-status').style.display = 'none';
+    });
+
+    uppy.on('upload-error', (file, error, response) => {
+        clearTimeout(icloudTimeout);
+        document.getElementById('upload-status').style.display = 'none';
+
+        const isIcloudEmpty = response?.body?.message?.includes('File is empty');
+        if (isIcloudEmpty) {
+            alert(`⚠️ "${file.name}" could not be uploaded.\nIt appears to still be in iCloud.\n\nPlease open it in the Photos app and wait until it fully downloads, then try again.`);
+        } else {
+            alert(`❌ Upload failed for "${file.name}": ${response?.body?.message || error}`);
+        }
+    });
 
     uppy.on('complete', () => {
         alert('✅ Upload complete!');
@@ -89,15 +124,15 @@
                                 : `<div class="card-body small text-muted">${file}</div>`;
 
                     gallery.insertAdjacentHTML('beforeend', `
-              <div class="col">
-                <div class="card h-100">
-                  ${media}
-                  <div class="d-flex justify-content-between p-2">
-                    <button class="btn btn-sm btn-danger" onclick="deleteFile('${file}')">🗑️</button>
-                    <button class="btn btn-sm btn-secondary" onclick="renameFilePrompt('${file}')">✏️</button>
-                  </div>
-                </div>
-              </div>`);
+                    <div class="col">
+                        <div class="card h-100">
+                            ${media}
+                            <div class="d-flex justify-content-between p-2">
+                                <button class="btn btn-sm btn-danger" onclick="deleteFile('${file}')">🗑️</button>
+                                <button class="btn btn-sm btn-secondary" onclick="renameFilePrompt('${file}')">✏️</button>
+                            </div>
+                        </div>
+                    </div>`);
                 });
             });
     }
@@ -123,6 +158,7 @@
     // Initial load
     loadGallery();
 </script>
+
 
 </body>
 </html>
